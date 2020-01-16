@@ -930,7 +930,7 @@ void Proto645::Decode645Frame(unsigned char* pucDatagram, unsigned short usDatag
             ptemp = Get645FrameData(pdatagram, data_len, &st645frame, &ucdi, &nlen);
             if ((ptemp == NULL) || (st645frame.stCtrl.ucSlaveFlag == 1) || (st645frame.stCtrl.ucDir == 0))
             {
-                qDebug()<<"get Get645FrameData break"<<endl;
+                //qDebug()<<"get Get645FrameData break"<<endl;
                 break;
             }
             Dec645Addr(st645frame.ucAddr, HI_METER_ADDR_LEN, addrdata, 12);
@@ -939,23 +939,24 @@ void Proto645::Decode645Frame(unsigned char* pucDatagram, unsigned short usDatag
             mrsToolsMemZero_s(ucframedata, MRS_PROTO645_DATAGRAM_DATA_LEN_MAX, MRS_PROTO645_DATAGRAM_DATA_LEN_MAX);
             mrsToolsMemcpy_s(ucframedata, MRS_PROTO645_DATAGRAM_DATA_LEN_MAX, ptemp, nlen);
 
-
             mrs645DataDecode(ucframedata, nlen);
+           // qDebug()<<"ucdi"<<ucdi<<endl;
             switch (ucdi)
             {
             case MRS_645_IDENTIFICATION_SET_IP_PORT:
                 this->SendIpportSignal(ucframedata,nlen);
-                break;
+                return;
 
             case MRS_645_IDENTIFICATION_SET_MAC_ADDR: //设置ip
                   this->SendAddrSignal(ucframedata,nlen);
-                break;
+                 return;
             }
 
 
 
-            pdatagram += st645frame.ucDataRealmLen + MRS_645_FRAME_LENGTH_MIN;
+            //pdatagram += st645frame.ucDataRealmLen + MRS_645_FRAME_LENGTH_MIN;
             mrsToolsMemZero_s(&st645frame, sizeof(MRS_645_FRAME_STRU), sizeof(MRS_645_FRAME_STRU));
+
 
 
         }
@@ -971,12 +972,12 @@ void Proto645::SendIpportSignal(unsigned char *ucframedata,unsigned char nlen){
     QByteArray portByteArray;
     QString port="";
 
+      char pHex[4];
     for(int i=0;i<nlen;i++){
         if(i<16){
            ip.append(*(ucframedata+i));
         }
         if(i>=16){
-             char pHex[1];
             sprintf(pHex, "%02x", *(ucframedata+i) & 0xff);
             port=pHex+port;
         }
@@ -986,20 +987,18 @@ void Proto645::SendIpportSignal(unsigned char *ucframedata,unsigned char nlen){
     int hex=port.toInt(&ok, 16);
     port =  QString::number(hex);
 
-
-
     emit emitIpportSignal(ip,port);
 }
 
 
 void Proto645::SendAddrSignal(unsigned char *ucframedata,unsigned char nlen){
     QString addr;
-   for(int i=(int)nlen-1;i>=0;i--){
-       char pHex[1];
-       sprintf(pHex, "%02x",*(ucframedata+i) & 0xff);
+    char pHex[4];
+   for(int i=nlen-1;i>=0;i--){
+       sprintf(pHex, "%02x",ucframedata[i]& 0xff);
        addr.append(pHex);
    }
-    emit emitAddrSignal(addr);
+   emit emitAddrSignal(addr);
 }
 
 

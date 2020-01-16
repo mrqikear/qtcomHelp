@@ -31,14 +31,14 @@ Chuan::Chuan(QWidget *parent) :
 
     comTimer = new QTimer();
     comTimer->stop();
-    comTimer->setInterval(10000);
+    comTimer->setInterval(20000);
     connect(comTimer,SIGNAL(timeout()),this,SLOT(ReFindPort()));
     comTimer->start();
 
     this->proto645 =  new Proto645;
     void(Proto645::*emitIpportSignalP)(QString,QString) = &Proto645::emitIpportSignal;
     connect(this->proto645, emitIpportSignalP, this, &this->setIpText);
-    void(Proto645::*emitAddrSignalp)(QString) =& Proto645::emitAddrSignal;
+    void(Proto645::*emitAddrSignalp)(QString) =&Proto645::emitAddrSignal;
     connect(this->proto645, emitAddrSignalp, this, &this->setAddrText);
 
 }
@@ -212,8 +212,6 @@ void Chuan::readComDataSlot()
     if(readComData != NULL)
     {
         unsigned char* readComDataStr =  (unsigned char*)readComData.data();
-
-
         this->proto645->Decode645Frame(readComDataStr,readComData.length());
         debug debug;
         QString str = debug.HexToQString(readComDataStr,readComData.length());
@@ -399,7 +397,7 @@ void Chuan::on_macbtn_clicked()
     my_serialport->write(p645dataByteArray);
      //追加内容显示
     debug debug;
-    debug.debug_str("str:",p645dataByteArray);
+   // debug.debug_str("str:",p645dataByteArray);
     QString str = debug.HexToQString(p645data,n645len);
      mrsToolsFree(p645data);
     ui->teSendData->append(str);
